@@ -198,14 +198,6 @@ get.model.states <- function() {
   diagrams
 }
 
-get.code.sample <- function() {
-  # The tree as read from the .trex file, and the code that runs it.
-  list(
-    `Model tree` = list(code = trex.tree.text(MODEL), language = 'text'),
-    `treeage.R` = readLines('treeage.R')
-  )
-}
-
 
 # ==== Description of the model ==================================================
 

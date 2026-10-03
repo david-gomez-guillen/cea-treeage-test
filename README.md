@@ -50,8 +50,7 @@ How the interface maps the TreeAge model to THALASSA:
   cost-effectiveness settings (the first two sets otherwise). `run.simulation()`
   also returns every reward set, the cohort trace and the flows into each state,
   per cycle and per stratum.
-- **State diagrams** are drawn for every distinct Markov process, and the Code
-  panel shows the tree as read from the file.
+- **State diagrams** are drawn for every distinct Markov process.
 
 ## What the engine supports
 
