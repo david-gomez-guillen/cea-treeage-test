@@ -8,6 +8,8 @@
 #   CYCLES.PER.STRATUM       the number of Markov cycles in each stratum
 #   PARAMETER.DISPLAY.NAMES  (optional) a named list or vector of display names
 #                            by parameter name, overriding the TreeAge labels
+#   HIDDEN.PARAMETERS        (optional) the names of the parameters THALASSA does
+#                            not show, which stay at their base value
 
 source('treeage.R')
 
@@ -17,10 +19,14 @@ MODEL <- read.trex(TREX.FILE)
 PARAMETERS <- trex.parameters(MODEL)
 STRATEGIES <- trex.strategies(MODEL)
 
-if (exists('PARAMETER.DISPLAY.NAMES')) {
-  unknown <- setdiff(names(PARAMETER.DISPLAY.NAMES), names(PARAMETERS))
+if (!exists('HIDDEN.PARAMETERS')) HIDDEN.PARAMETERS <- character(0)
+
+for (setting in c('PARAMETER.DISPLAY.NAMES', 'HIDDEN.PARAMETERS')) {
+  if (!exists(setting)) next
+  value <- get(setting)
+  unknown <- setdiff(if (is.character(value)) value else names(value), names(PARAMETERS))
   if (length(unknown) > 0)
-    warning('PARAMETER.DISPLAY.NAMES names variables that are not parameters of ', basename(TREX.FILE), ': ',
+    warning(setting, ' names variables that are not parameters of ', basename(TREX.FILE), ': ',
             paste(unknown, collapse = ', '), call. = FALSE)
 }
 
@@ -65,13 +71,14 @@ get.parameters <- function() {
   # The parameters are the constants defined at the root of the tree. They are
   # shown by their display name, and grouped by the category of their TreeAge
   # variable or, without one, by what the usual prefix of their name says they
-  # are.
-  labels <- vapply(PARAMETERS, parameter.display.name, character(1))
+  # are. Those in HIDDEN.PARAMETERS are left out, and run at their base value.
+  shown <- PARAMETERS[!names(PARAMETERS) %in% HIDDEN.PARAMETERS]
+  labels <- vapply(shown, parameter.display.name, character(1))
   shared <- labels != '' & (duplicated(labels) | duplicated(labels, fromLast = TRUE))
-  labels[shared] <- paste0(labels[shared], ' (', names(PARAMETERS)[shared], ')')
+  labels[shared] <- paste0(labels[shared], ' (', names(shown)[shared], ')')
 
-  lapply(seq_along(PARAMETERS), function(i) {
-    p <- PARAMETERS[[i]]
+  lapply(seq_along(shown), function(i) {
+    p <- shown[[i]]
     parameter <- list(name = p$name, base.value = p$base.value, class = parameter.class(p))
     if (labels[i] != '') parameter$display.name <- labels[i]
     parameter
@@ -270,6 +277,9 @@ describe.model <- function() {
              '', '| Parameter | Base value | Definition in TreeAge | Description |', '|---|---|---|---|',
              vapply(PARAMETERS, function(p) paste0('| `', p$name, '` | ', signif(p$base.value, 6), ' | `', p$expression, '` | ',
                                                     md.escape(parameter.display.name(p)), ' |'), character(1)))
+  if (length(HIDDEN.PARAMETERS) > 0)
+    lines <- c(lines, '', paste0('Not shown in the app, so always at their base value: ',
+                                 paste0('`', HIDDEN.PARAMETERS, '`', collapse = ', '), '.'))
 
   formulas <- trex.formulas(MODEL)
   if (length(formulas) > 0)

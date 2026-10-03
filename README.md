@@ -24,7 +24,8 @@ or Markov cohort model saved by TreeAge.
 3. Give its parameters display names in `PARAMETER.DISPLAY.NAMES`, by the name
    of their TreeAge variable. A parameter left out is shown by the label of its
    TreeAge variable, if it has one; a name that is not a parameter of the model
-   gives a warning when the model loads.
+   gives a warning when the model loads. List in `HIDDEN.PARAMETERS` any
+   parameter the app should not show; it stays at its base value.
 4. Replace `overview.md` with a description of the model, or delete it: the
    description generated from the file is shown either way.
 5. Replace the calibration scheme in `thalassa_interface.R` with one for the

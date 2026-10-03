@@ -37,6 +37,9 @@ PARAMETER.DISPLAY.NAMES <- list(
   totalCycles = 'Time horizon (years)'
 )
 
+# The parameters not shown in THALASSA, which always run at their base value.
+HIDDEN.PARAMETERS <- c('totalCycles')
+
 source('treeage_interface.R')
 
 
