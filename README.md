@@ -2,8 +2,8 @@
 
 A THALASSA model whose logic lives in a TreeAge Pro file. Instead of writing the
 model in R, as [cea-model-test](https://github.com/david-gomez-guillen/cea-model-test)
-does, `thalassa_interface.R` reads a `.trex` file and runs it with a small TreeAge
-engine written in R (`treeage.R`). The strategies, parameters, strata, states and
+does, the interface reads a `.trex` file and runs it with a small TreeAge engine
+written in R (`treeage.R`). The strategies, parameters, strata, states and
 rewards all come from the file, so the same interface works for any decision tree
 or Markov cohort model saved by TreeAge.
 
@@ -11,20 +11,27 @@ or Markov cohort model saved by TreeAge.
 |---|---|
 | `screening.trex` | The TreeAge model loaded by default. |
 | `treeage.R` | Reads a `.trex` file and evaluates it as TreeAge's expected value (cohort) analysis does. |
-| `thalassa_interface.R` | The THALASSA interface on top of it, plus an example calibration scheme for `screening.trex`. |
+| `treeage_interface.R` | The THALASSA interface for any TreeAge model, on top of the engine. Rarely needs changing. |
+| `thalassa_interface.R` | What is specific to `screening.trex`: the file to load, the strata, the display names of its parameters and an example calibration scheme. It sources `treeage_interface.R`, and is the file to edit for another model. |
 | `overview.md` | Hand-written description of `screening.trex`, shown before the description generated from the file. |
 | `tests/run_tests.R` | Tests: expressions, a hand-written version of `screening.trex`, and TreeAge's own results for a reference model. |
 
 ## Using another TreeAge model
 
 1. Save the model from TreeAge Pro as a `.trex` file and put it in the repository.
-2. Set `TREX.FILE` at the top of `thalassa_interface.R` to its name, and
+2. In `thalassa_interface.R`, set `TREX.FILE` to its name and
    `CYCLES.PER.STRATUM` to the size of the strata you want.
-3. Replace `overview.md` with a description of the model, or delete it: the
+3. Give its parameters display names in `PARAMETER.DISPLAY.NAMES`, by the name
+   of their TreeAge variable. A parameter left out is shown by the label of its
+   TreeAge variable, if it has one; a name that is not a parameter of the model
+   gives a warning when the model loads.
+4. Replace `overview.md` with a description of the model, or delete it: the
    description generated from the file is shown either way.
-4. Write a calibration scheme for it if you need one. The one in
-   `thalassa_interface.R` is specific to `screening.trex` and is not offered for
-   another model.
+5. Replace the calibration scheme in `thalassa_interface.R` with one for the
+   model, or delete it. The one there is specific to `screening.trex` and is not
+   offered for another model.
+
+`treeage_interface.R` stays as it is.
 
 How the interface maps the TreeAge model to THALASSA:
 
@@ -33,8 +40,9 @@ How the interface maps the TreeAge model to THALASSA:
 - **Parameters** are the variables defined at the root as constants, such as `0.05`,
   `6358/2` or `DistSamp(1)` (a distribution is used at its mean). Formulas, and
   variables defined at other nodes, stay in the model and are recomputed from them.
-  They are shown by the label of their TreeAge variable and grouped by its category,
-  or by name prefix (`p`, `c`, `u`) without one.
+  They are shown by their name in `PARAMETER.DISPLAY.NAMES` or else the label of
+  their TreeAge variable, and grouped by its category, or by name prefix (`p`, `c`,
+  `u`) without one.
 - **Strata** are groups of `CYCLES.PER.STRATUM` Markov cycles. A parameter split
   into strata takes, at each cycle, the value of its stratum.
 - **C** and **E** are the cost and effectiveness reward sets of the model's

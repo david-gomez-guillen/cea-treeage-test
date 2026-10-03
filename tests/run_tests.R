@@ -110,6 +110,7 @@ check('invalid probabilities make the run fail', inherits(try(run.simulation('no
 # ==== Interface =================================================================
 
 check('every strategy has a name and a display name', all(vapply(get.strategies(), function(s) !is.null(s$name) && !is.null(s$display.name), logical(1))))
+check('every parameter has a display name', all(vapply(get.parameters(), function(p) nzchar(p$display.name %or% ''), logical(1))))
 check('parameter display names are unique', !any(duplicated(Filter(nzchar, vapply(get.parameters(), function(p) p$display.name %or% '', character(1))))))
 check('the summary has strategy, C and E', all(c('strategy', 'C', 'E') %in% names(results$summary)))
 check('the overview renders', is.character(get.overview()) && nchar(get.overview()) > 0)
