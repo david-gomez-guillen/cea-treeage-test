@@ -113,6 +113,8 @@ check('every strategy has a name and a display name', all(vapply(get.strategies(
 check('hidden parameters are not shown', !any(HIDDEN.PARAMETERS %in% vapply(get.parameters(), function(p) p$name, character(1))))
 check('every parameter has a display name', all(vapply(get.parameters(), function(p) nzchar(p$display.name %or% ''), logical(1))))
 check('parameter display names are unique', !any(duplicated(Filter(nzchar, vapply(get.parameters(), function(p) p$display.name %or% '', character(1))))))
+check('every base value is within its range', all(vapply(get.parameters(), function(p)
+  p$base.value >= (p$min.value %or% -Inf) && p$base.value <= (p$max.value %or% Inf), logical(1))))
 check('the summary has strategy, C and E', all(c('strategy', 'C', 'E') %in% names(results$summary)))
 check('the overview renders', is.character(get.overview()) && nchar(get.overview()) > 0)
 check('the model states have nodes and edges', all(vapply(get.model.states(), function(d) nrow(d$nodes) > 0 && nrow(d$edges) > 0, logical(1))))

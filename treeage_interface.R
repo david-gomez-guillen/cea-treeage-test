@@ -10,6 +10,19 @@
 #                            by parameter name, overriding the TreeAge labels
 #   HIDDEN.PARAMETERS        (optional) the names of the parameters THALASSA does
 #                            not show, which stay at their base value
+#   PARAMETER.DISTRIBUTIONS  (optional) a named list or vector of the
+#                            distribution the PSA draws each parameter from, by
+#                            parameter name; one left out is not offered there
+#   PARAMETER.RANGES         (optional) a named list of c(min, max) by parameter
+#                            name, the values THALASSA lets it take; an
+#                            infinite end leaves that side open
+#   STRATEGY.INFO            (optional) a named list, by strategy name, of what
+#                            THALASSA says of each strategy beyond its TreeAge
+#                            label: list(description=, attributes=, style=),
+#                            every field optional
+#   STRATEGY.ATTRIBUTES      (optional) the attributes the strategies give values
+#                            to in STRATEGY.INFO, as get.strategy.attributes()
+#                            returns them
 
 source('treeage.R')
 
@@ -21,12 +34,19 @@ STRATEGIES <- trex.strategies(MODEL)
 
 if (!exists('HIDDEN.PARAMETERS')) HIDDEN.PARAMETERS <- character(0)
 
-for (setting in c('PARAMETER.DISPLAY.NAMES', 'HIDDEN.PARAMETERS')) {
+for (setting in c('PARAMETER.DISPLAY.NAMES', 'HIDDEN.PARAMETERS', 'PARAMETER.DISTRIBUTIONS', 'PARAMETER.RANGES')) {
   if (!exists(setting)) next
   value <- get(setting)
   unknown <- setdiff(if (is.character(value)) value else names(value), names(PARAMETERS))
   if (length(unknown) > 0)
     warning(setting, ' names variables that are not parameters of ', basename(TREX.FILE), ': ',
+            paste(unknown, collapse = ', '), call. = FALSE)
+}
+
+if (exists('STRATEGY.INFO')) {
+  unknown <- setdiff(names(STRATEGY.INFO), STRATEGIES$name)
+  if (length(unknown) > 0)
+    warning('STRATEGY.INFO names strategies that are not in ', basename(TREX.FILE), ': ',
             paste(unknown, collapse = ', '), call. = FALSE)
 }
 
@@ -64,7 +84,15 @@ get.model.settings <- function() {
 }
 
 get.strategies <- function() {
-  lapply(seq_len(nrow(STRATEGIES)), function(i) list(name = STRATEGIES$name[i], display.name = STRATEGIES$display.name[i]))
+  lapply(seq_len(nrow(STRATEGIES)), function(i) {
+    info <- if (exists('STRATEGY.INFO')) STRATEGY.INFO[[STRATEGIES$name[i]]] else NULL
+    c(list(name = STRATEGIES$name[i], display.name = STRATEGIES$display.name[i]),
+      info[intersect(names(info), c('description', 'attributes', 'style'))])
+  })
+}
+
+if (exists('STRATEGY.ATTRIBUTES')) {
+  get.strategy.attributes <- function() STRATEGY.ATTRIBUTES
 }
 
 get.parameters <- function() {
@@ -81,6 +109,13 @@ get.parameters <- function() {
     p <- shown[[i]]
     parameter <- list(name = p$name, base.value = p$base.value, class = parameter.class(p))
     if (labels[i] != '') parameter$display.name <- labels[i]
+    if (exists('PARAMETER.DISTRIBUTIONS') && !is.null(PARAMETER.DISTRIBUTIONS[[p$name]]))
+      parameter$distribution <- PARAMETER.DISTRIBUTIONS[[p$name]]
+    range <- if (exists('PARAMETER.RANGES')) PARAMETER.RANGES[[p$name]]
+    if (!is.null(range)) {
+      if (is.finite(range[1])) parameter$min.value <- range[1]
+      if (is.finite(range[2])) parameter$max.value <- range[2]
+    }
     parameter
   })
 }

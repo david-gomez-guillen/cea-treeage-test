@@ -37,8 +37,69 @@ PARAMETER.DISPLAY.NAMES <- list(
   totalCycles = 'Time horizon (years)'
 )
 
+# The distribution the PSA draws each parameter from. The screening interval is
+# a choice of the strategy rather than an uncertain quantity, and declares none,
+# which keeps it out of the PSA.
+PARAMETER.DISTRIBUTIONS <- list(
+  prev = 'beta',
+  pInc_ann = 'beta',
+  pProg2_UnDx = 'beta',
+  pProg2_Dx = 'beta',
+  pDie = 'beta',
+  test_sens = 'beta',
+  test_spec = 'beta',
+  cScreen = 'gamma',
+  cStage1 = 'gamma',
+  cStage2 = 'gamma',
+  uStage1 = 'beta',
+  uStage2 = 'beta'
+)
+
+# The values each parameter can take in THALASSA, as c(min, max); an infinite
+# end leaves that side open. Probabilities and utilities lie between 0 and 1,
+# and costs are positive.
+PARAMETER.RANGES <- list(
+  prev = c(0, 1),
+  pInc_ann = c(0, 1),
+  pProg2_UnDx = c(0, 1),
+  pProg2_Dx = c(0, 1),
+  pDie = c(0, 1),
+  test_sens = c(0, 1),
+  test_spec = c(0, 1),
+  cScreen = c(0, Inf),
+  cStage1 = c(0, Inf),
+  cStage2 = c(0, Inf),
+  uStage1 = c(0, 1),
+  uStage2 = c(0, 1)
+)
+
 # The parameters not shown in THALASSA, which always run at their base value.
 HIDDEN.PARAMETERS <- c('totalCycles')
+
+# What THALASSA says of each strategy beyond its TreeAge label, by the name it
+# is run under. The .trex file has no descriptions of its own, so these describe
+# the branches of its root decision node and must be kept in sync with them.
+STRATEGY.INFO <- list(
+  no_screening = list(
+    description = 'The disease is only found once it gives symptoms, in stage 2.',
+    attributes = list(screening = 'None', detection = 'Symptoms (stage 2)')
+  ),
+  screening_imperfect = list(
+    description = paste('Everyone healthy or in undiagnosed stage 1 is screened every screen_int cycles,',
+                        'starting at the first one, at cScreen each. The test finds stage 1 disease with',
+                        'probability test_sens, which is then treated, and a false positive (1 - test_spec)',
+                        'costs a work-up of cStage1 / 4.'),
+    attributes = list(screening = 'Imperfect test', detection = 'Screening (stage 1) or symptoms (stage 2)')
+  )
+)
+
+# The attributes the strategies give values to above. Whether and how a
+# strategy screens is drawn as the shape of its point on the base case plot.
+STRATEGY.ATTRIBUTES <- list(
+  screening = list(label = 'Screening', plot = 'shape',
+                   values = c(None = 'x', `Imperfect test` = 'circle')),
+  detection = 'Disease found by'
+)
 
 source('treeage_interface.R')
 
