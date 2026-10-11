@@ -168,7 +168,7 @@ if (CALIBRATION$parameter %in% names(PARAMETERS) &&
         initial_guess = rep(PARAMETERS[[CALIBRATION$parameter]]$base.value, length(STRATA$names)),
         error_function = calibration.error,
         latent_space_training_set = generate.training.dataset,
-        other.plots = NULL
+        evaluation.plots = NULL
       )
     )
   }
